@@ -79,12 +79,12 @@ let books = [
   },
 ]
 
-//let genres = [
-//    { name: 'classic' }, { name: 'revolution' }, { name: 'crime' }, { name: 'refactoring' }, 
-//    { name: 'design' }, { name: 'patterns' }, { name: 'agile' }
-//]
-
 const typeDefs = `
+  type Author {
+    name: String!
+    born: Int
+    bookCount: Int!
+  }
   type Book {
     title: String!
     author: String!
@@ -95,6 +95,7 @@ const typeDefs = `
     bookCount: Int!
     authorCount: Int!
     allBooks: [Book!]!
+    allAuthors: [Author!]!
   }
 `
 
@@ -102,7 +103,11 @@ const resolvers = {
   Query: {
     bookCount: () => books.length,
     authorCount: () => authors.length,
-    allBooks: () => books
+    allBooks: () => books,
+    allAuthors: () => authors
+  },
+  Author: {
+    bookCount: (root) => laskeKirjailijanKirjat(root.name)
   }
 }
 
@@ -116,3 +121,12 @@ startStandaloneServer(server, {
 }).then(({ url }) => {
   console.log(`Server ready at ${url}`)
 })
+
+// omat funktiot
+function laskeKirjailijanKirjat (kirjailija) {
+  let lkm = 0
+  for (i=0; i < books.length; i++) {
+    if (books[i].author == kirjailija) lkm++
+  }
+  return lkm
+}
