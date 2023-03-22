@@ -1,5 +1,7 @@
 const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
+const { GraphQLError } = require('graphql')
+const { v1: uuid } = require('uuid')
 
 let authors = [
   {
@@ -82,11 +84,10 @@ let books = [
 const typeDefs = `
   type Author {
     name: String!
-    born: Int
     bookCount: Int!
   }
   type Book {
-    title: String!
+    title: String
     author: String!
     published: Int!
     genres: [String!]!
@@ -94,8 +95,9 @@ const typeDefs = `
   type Query {
     bookCount: Int!
     authorCount: Int!
-    allBooks: [Book!]!
+    allBooks(author: String): [Book!]!
     allAuthors: [Author!]!
+    findAuthor(name: String!): Author
   }
 `
 
@@ -103,8 +105,10 @@ const resolvers = {
   Query: {
     bookCount: () => books.length,
     authorCount: () => authors.length,
-    allBooks: () => books,
-    allAuthors: () => authors
+    allBooks: (root, args) => apuAllBooks(books, args),
+    //allBooks: (root, args) => books.filter(book => book.author == args.author),
+    allAuthors: () => authors,
+    findAuthor: (root, args) => authors.find(a => a.name === args.name)
   },
   Author: {
     bookCount: (root) => laskeKirjailijanKirjat(root.name)
@@ -129,4 +133,23 @@ function laskeKirjailijanKirjat (kirjailija) {
     if (books[i].author == kirjailija) lkm++
   }
   return lkm
+}
+
+function isEmpty(obj) {
+  return Object.keys(obj).length === 0;
+}
+
+function apuAllBooks (books, args) {
+  if (isEmpty(args)) {
+    return books
+  }
+  else {
+    palautettavat = []
+    for (i=0; i<books.length; i++) {
+      if (books[i].author == args.author) {
+        palautettavat.push(books[i])
+      }
+    }
+    return palautettavat
+  }
 }
