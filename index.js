@@ -95,7 +95,7 @@ const typeDefs = `
   type Query {
     bookCount: Int!
     authorCount: Int!
-    allBooks(author: String): [Book!]!
+    allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
     findAuthor(name: String!): Author
   }
@@ -106,7 +106,6 @@ const resolvers = {
     bookCount: () => books.length,
     authorCount: () => authors.length,
     allBooks: (root, args) => apuAllBooks(books, args),
-    //allBooks: (root, args) => books.filter(book => book.author == args.author),
     allAuthors: () => authors,
     findAuthor: (root, args) => authors.find(a => a.name === args.name)
   },
@@ -140,16 +139,20 @@ function isEmpty(obj) {
 }
 
 function apuAllBooks (books, args) {
+  console.log("ARGS:", args)
+  console.log("ARGS.AUTHOR:", args.author===undefined)
+  console.log("ARGS.GENRE :", args.genre===undefined)
   if (isEmpty(args)) {
     return books
   }
+  else if (((args.author===undefined)==false) & ((args.genre===undefined)==true)) {
+    return books.filter(book => book.author == args.author)
+  }
+  else if (((args.author===undefined)==true) & ((args.genre===undefined)==false)) {
+    return books.filter(book => book.genres.find(genre => genre == args.genre))
+  }
   else {
-    palautettavat = []
-    for (i=0; i<books.length; i++) {
-      if (books[i].author == args.author) {
-        palautettavat.push(books[i])
-      }
-    }
-    return palautettavat
+    return books.filter(book => (book.author == args.author) &&
+                                (book.genres.find(genre => genre == args.genre)))
   }
 }
