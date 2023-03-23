@@ -84,6 +84,7 @@ let books = [
 const typeDefs = `
   type Author {
     name: String!
+    born: Int
     bookCount: Int!
   }
   type Book {
@@ -99,6 +100,21 @@ const typeDefs = `
     allAuthors: [Author!]!
     findAuthor(name: String!): Author
   }
+  type Mutation {
+    addBook(
+      title: String!
+      published: Int
+      author: String!
+      genres: [String!]!
+    ): Book
+  }
+  type Mutation {
+    addAuthor(
+      name: String!
+      born: Int
+      bookCount: Int
+    ): Author
+  }
 `
 
 const resolvers = {
@@ -111,6 +127,23 @@ const resolvers = {
   },
   Author: {
     bookCount: (root) => laskeKirjailijanKirjat(root.name)
+  },
+  Mutation: {
+    addAuthor: (root, args) => {
+      const author = { ...args, id: uuid() }
+      authors = authors.concat(author)
+      return author
+    },
+    addBook: (root, args) => {
+      const book = { ...args, id: uuid() }
+      books = books.concat(book)
+      const writer = authors.find(a => a.name === book.author)
+      if (!writer) {
+        uusi_kirjailija = {'name': book.author, 'id': uuid()}
+        authors = authors.concat(uusi_kirjailija)
+      }
+      return book
+    }
   }
 }
 
@@ -139,9 +172,6 @@ function isEmpty(obj) {
 }
 
 function apuAllBooks (books, args) {
-  console.log("ARGS:", args)
-  console.log("ARGS.AUTHOR:", args.author===undefined)
-  console.log("ARGS.GENRE :", args.genre===undefined)
   if (isEmpty(args)) {
     return books
   }
