@@ -2,6 +2,9 @@ const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
 const { GraphQLError } = require('graphql')
 const { v1: uuid } = require('uuid')
+require('dotenv').config()
+const Author = require('./models/author')
+const Book = require('./models/book')
 
 let authors = [
   {
@@ -88,10 +91,11 @@ const typeDefs = `
     bookCount: Int!
   }
   type Book {
-    title: String
-    author: String!
+    title: String!
+    author: Author!
     published: Int!
     genres: [String!]!
+    id: ID!
   }
   type Query {
     bookCount: Int!
@@ -139,6 +143,7 @@ const resolvers = {
       return author
     },
     editAuthor: (root, args) => {
+      console.log("Backend editAuthor args:", args)
       const author = authors.find(a => a.name === args.name)
       if (!author) {
         return null
@@ -148,6 +153,7 @@ const resolvers = {
       return updatedAuthor
     },
     addBook: (root, args) => {
+      console.log("Backend addBook args:", args)
       const book = { ...args, id: uuid() }
       books = books.concat(book)
       const writer = authors.find(a => a.name === book.author)
@@ -165,8 +171,9 @@ const server = new ApolloServer({
   resolvers,
 })
 
+const PORT = process.env.PORT
 startStandaloneServer(server, {
-  listen: { port: 4000 },
+  listen: { port: PORT },
 }).then(({ url }) => {
   console.log(`Server ready at ${url}`)
 })
