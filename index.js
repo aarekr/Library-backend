@@ -34,8 +34,8 @@ const typeDefs = `
   type Query {
     bookCount: Int!
     authorCount: Int!
-    allBooks(author: String, genre: String): [Book!]!
-    allAuthors: [Author!]!
+    allBooks(author: String, published: Int, genre: String): [Book!]!
+    allAuthors(name: String, born: Int): [Author!]!
     findAuthor(name: String!): Author
   }
   type Mutation {
@@ -64,12 +64,33 @@ const resolvers = {
     bookCount: async () => Book.collection.countDocuments(),
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
-      // filters missing
-      return Book.find({})
+      console.log("Backend index.js allBooks args:", args)
+      if (args.published) {
+        return Book.find({ published: args.published })
+      }
+      else if (args.genre) {
+        return Book.find({ genres: args.genre })
+      }
+      else if (!args.author) {
+        return Book.find({})
+      }
+      else if (args.author) {
+        const author = await Author.findOne({ name: args.author })
+        console.log("author.name:", author.name)
+        return Book.find({ author : author.name })
+      }
     },
     allAuthors: async (root, args) => {
-      // filters missing
-      return Author.find({})
+      console.log("Backend index.js allAuthors args:", args)
+      if (!args.born && !args.name) {
+        return Author.find({})
+      }
+      else if (args.name) {
+        return Author.find({ name: args.name })
+      }
+      else if (args.born) {
+        return Author.find({ born: args.born })
+      }
     },
     findAuthor: async (root, args) => Author.findOne({ name: args.name }),
   },
